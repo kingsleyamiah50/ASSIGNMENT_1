@@ -1,0 +1,427 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>MCcode</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-02-07"><meta name="DC.source" content="MCcode.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput">clearvars
+clearvars <span class="string">-GLOBAL</span>
+close <span class="string">all</span>
+set(0,<span class="string">'DefaultFigureWindowStyle'</span>, <span class="string">'docked'</span>)
+
+<span class="comment">%CONSTANTS AND VARIABLES</span>
+
+<span class="keyword">global</span> C
+<span class="keyword">global</span> Em T
+<span class="keyword">global</span> BoundX BoundY
+<span class="keyword">global</span> Pxp Px Pyp Py Vx Vy
+<span class="keyword">global</span> Vtherm
+<span class="keyword">global</span> nElectrons
+<span class="keyword">global</span> t_mn
+
+
+
+C.q_0 = 1.60217653e-19;             <span class="comment">% electron charge</span>
+C.hb = 1.054571596e-34;             <span class="comment">% Dirac constant</span>
+C.h = C.hb * 2 * pi;                    <span class="comment">% Planck constant</span>
+C.m_0 = 9.10938215e-31;             <span class="comment">% electron mass</span>
+C.kb = 1.3806504e-23;               <span class="comment">% Boltzmann constant</span>
+C.eps_0 = 8.854187817e-12;          <span class="comment">% vacuum permittivity</span>
+C.mu_0 = 1.2566370614e-6;           <span class="comment">% vacuum permeability</span>
+C.c = 299792458;                    <span class="comment">% speed of light</span>
+C.g = 9.80665;                      <span class="comment">% metres (32.1740 ft) per s&sup2;</span>
+
+
+Em = 0.26 * C.m_0;                    <span class="comment">% Mass of the Electron</span>
+BoundX = 200e-9;                    <span class="comment">% X boundary</span>
+BoundY = 100e-9;                    <span class="comment">% Y boundary</span>
+T = 300;                            <span class="comment">% Semiconductor temperature</span>
+
+t_mn = 0.2e-11;                     <span class="comment">% Mean time between collisions</span>
+
+TimeSteps = 50;                   <span class="comment">% Number of time steps</span>
+
+nElectrons = 1000;                   <span class="comment">% Number of electrons</span>
+
+dt = 1e-13;                         <span class="comment">% Time Step</span>
+
+<span class="comment">% BOX 1 Boundaries</span>
+
+Box1Bnd1x = 0.8e-7;
+Box1Bnd1y = 1e-7;
+Box1Bnd2x = 1.2e-7;
+Box1Bnd2y = 1e-7;
+Box1Bnd3x = 1.2e-7;
+Box1Bnd3y = 0.6e-7;
+Box1Bnd4x = 0.8e-7;
+Box1Bnd4y = 0.6e-7;
+
+<span class="comment">% BOX 2 Boundaries</span>
+
+Box2Bnd1x = 0.8e-7;
+Box2Bnd1y = 0.4e-7;
+Box2Bnd2x = 1.2e-7;
+Box2Bnd2y = 0.4e-7;
+Box2Bnd3x = 1.2e-7;
+Box2Bnd3y = 0;
+Box2Bnd4x = 0.8e-7;
+Box2Bnd4y = 0;
+
+subplot(2,1,1);
+myBoxes(Box1Bnd1x, Box1Bnd1y, Box1Bnd2x, Box1Bnd2y, Box1Bnd3x, Box1Bnd3y, Box1Bnd4x, Box1Bnd4y);
+myBoxes(Box2Bnd1x, Box2Bnd1y, Box2Bnd2x, Box2Bnd2y, Box2Bnd3x, Box2Bnd3y, Box2Bnd4x, Box2Bnd4y);
+hold <span class="string">on</span>
+
+<span class="comment">%INITITAL POSITIONS</span>
+
+<span class="comment">%Check if electrons are within Box 1 and Box 2</span>
+
+x = randi(nElectrons,1);
+Pxp(1: x) = ((Box2Bnd4x - 0).*rand(x, 1))* BoundX;
+Pxp(x+1: nElectrons) = ((BoundX - Box2Bnd3x).*rand(nElectrons - x, 1) + Box2Bnd3x )* BoundX;
+
+
+Pyp(1: nElectrons) = rand(nElectrons, 1) * BoundY;
+
+Vtherm = sqrt(2 * C.kb * T/Em);
+
+Vx(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+Vy(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+
+<span class="comment">% Vx(1: nElectrons) = myRand(nElectrons) * Vtherm;</span>
+<span class="comment">% Vy(1: nElectrons) = myRand(nElectrons) * Vtherm;</span>
+
+Px(1: nElectrons) = Pxp(1: nElectrons) + (Vx .* dt);
+Py(1: nElectrons) = Pyp(1: nElectrons) + (Vy .* dt);
+
+<span class="comment">%Check if electrons are within Box 1 and Box 2</span>
+
+<span class="comment">% DoF = 0.05e-7;</span>
+<span class="comment">% k = 1;</span>
+<span class="comment">% while k &lt;= nElectrons</span>
+<span class="comment">%     if((Pxp(k) &gt;= (Box1Bnd1x - DoF)) &amp; (Pxp(k) &lt;= (Box1Bnd3x + DoF)) &amp; ~((Pyp(k) &lt;= (Box1Bnd3y - DoF)) &amp; (Pyp(k) &gt;= (Box2Bnd2y + DoF))))</span>
+<span class="comment">%         Pxp(1: nElectrons) = rand(nElectrons, 1) * BoundX;</span>
+<span class="comment">%         Pyp(1: nElectrons) = rand(nElectrons, 1) * BoundY;</span>
+<span class="comment">%</span>
+<span class="comment">%         Px(1: nElectrons) = Pxp(1: nElectrons) + (Vx .* dt);</span>
+<span class="comment">%         Py(1: nElectrons) = Pyp(1: nElectrons) + (Vy .* dt);</span>
+<span class="comment">%</span>
+<span class="comment">%         k = 1;</span>
+<span class="comment">%     else</span>
+<span class="comment">%         k = k + 1;</span>
+<span class="comment">%     end</span>
+<span class="comment">% end</span>
+
+myColors = [<span class="string">'r'</span> <span class="string">'b'</span> <span class="string">'g'</span> <span class="string">'y'</span> <span class="string">'m'</span> ];
+myColorTyp = 1;
+
+Pscat = 1 - exp(-(dt/t_mn));
+
+a = randi(nElectrons,5,1);
+
+TAvgp = 300;
+
+<span class="keyword">for</span> i=2:TimeSteps
+
+   <span class="keyword">if</span>(Pscat &gt; rand())
+      Vx(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+      Vy(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+<span class="comment">%             Vx(1: nElectrons) = myRand(nElectrons) * Vtherm;</span>
+<span class="comment">%             Vy(1: nElectrons) = myRand(nElectrons) * Vtherm;</span>
+   <span class="keyword">end</span>
+
+   Vy((Py&gt;BoundY) | (Py&lt;0)) = -Vy((Py&gt;BoundY) | (Py&lt;0));
+
+
+
+
+   <span class="keyword">for</span> j=1:5
+       subplot(2,1,1);
+
+<span class="comment">%        myBoxes(Box1Bnd1x, Box1Bnd1y, Box1Bnd2x, Box1Bnd2y, Box1Bnd3x, Box1Bnd3y, Box1Bnd4x, Box1Bnd4y);</span>
+<span class="comment">%        myBoxes(Box2Bnd1x, Box2Bnd1y, Box2Bnd2x, Box2Bnd2y, Box2Bnd3x, Box2Bnd3y, Box2Bnd4x, Box2Bnd4y);</span>
+
+       plot([Pxp(a(j)) Px(a(j))], [Pyp(a(j)) Py(a(j))],myColors(j));
+       xlim([0 BoundX]);
+       ylim([0 BoundY]);
+   <span class="keyword">end</span>
+   pause(0.1)
+   hold <span class="string">on</span>
+
+   VxAvg = mean(abs(Vx));
+   VyAvg = mean(abs(Vy));
+
+<span class="comment">%    VxAvg = mean(Vx);</span>
+<span class="comment">%    VyAvg = mean(Vy);</span>
+
+   TAvg = (((VxAvg^2)+ (VyAvg^2)) * Em)/(2 * C.kb);
+
+   subplot(2,1,2);
+   plot([i-1 i],[TAvgp TAvg],<span class="string">'r'</span>);
+   xlim([0 TimeSteps]);
+   ylim([0 800]);
+   pause(0.1)
+   hold <span class="string">on</span>
+
+   Px(Px&gt;BoundX) = Px(Px&gt;BoundX)-BoundX;
+   Px(Px&lt;0) = BoundX;
+
+   Pxp = Px;
+   Pyp = Py;
+
+   TAvgp = TAvg;
+
+   Px(1: nElectrons) = Pxp(1: nElectrons) + (Vx .* dt);
+   Py(1: nElectrons) = Pyp(1: nElectrons) + (Vy .* dt);
+
+
+
+<span class="keyword">end</span>
+Ex = gradient(Px);
+Ey = gradient(Py);
+figure
+quiver(-Ey',-Ex',1);
+</pre><img vspace="5" hspace="5" src="MCcode_01.png" alt=""> <img vspace="5" hspace="5" src="MCcode_02.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clearvars
+clearvars -GLOBAL
+close all
+set(0,'DefaultFigureWindowStyle', 'docked')
+
+%CONSTANTS AND VARIABLES
+
+global C
+global Em T
+global BoundX BoundY
+global Pxp Px Pyp Py Vx Vy
+global Vtherm
+global nElectrons
+global t_mn
+
+
+
+C.q_0 = 1.60217653e-19;             % electron charge
+C.hb = 1.054571596e-34;             % Dirac constant
+C.h = C.hb * 2 * pi;                    % Planck constant
+C.m_0 = 9.10938215e-31;             % electron mass
+C.kb = 1.3806504e-23;               % Boltzmann constant
+C.eps_0 = 8.854187817e-12;          % vacuum permittivity
+C.mu_0 = 1.2566370614e-6;           % vacuum permeability
+C.c = 299792458;                    % speed of light
+C.g = 9.80665;                      % metres (32.1740 ft) per s²
+
+
+Em = 0.26 * C.m_0;                    % Mass of the Electron
+BoundX = 200e-9;                    % X boundary
+BoundY = 100e-9;                    % Y boundary
+T = 300;                            % Semiconductor temperature
+            
+t_mn = 0.2e-11;                     % Mean time between collisions
+                    
+TimeSteps = 50;                   % Number of time steps
+
+nElectrons = 1000;                   % Number of electrons
+
+dt = 1e-13;                         % Time Step
+
+% BOX 1 Boundaries
+
+Box1Bnd1x = 0.8e-7;
+Box1Bnd1y = 1e-7;
+Box1Bnd2x = 1.2e-7;
+Box1Bnd2y = 1e-7;
+Box1Bnd3x = 1.2e-7;
+Box1Bnd3y = 0.6e-7;
+Box1Bnd4x = 0.8e-7;
+Box1Bnd4y = 0.6e-7;
+
+% BOX 2 Boundaries
+
+Box2Bnd1x = 0.8e-7;
+Box2Bnd1y = 0.4e-7;
+Box2Bnd2x = 1.2e-7;
+Box2Bnd2y = 0.4e-7;
+Box2Bnd3x = 1.2e-7;
+Box2Bnd3y = 0;
+Box2Bnd4x = 0.8e-7;
+Box2Bnd4y = 0;
+
+subplot(2,1,1);
+myBoxes(Box1Bnd1x, Box1Bnd1y, Box1Bnd2x, Box1Bnd2y, Box1Bnd3x, Box1Bnd3y, Box1Bnd4x, Box1Bnd4y);
+myBoxes(Box2Bnd1x, Box2Bnd1y, Box2Bnd2x, Box2Bnd2y, Box2Bnd3x, Box2Bnd3y, Box2Bnd4x, Box2Bnd4y);
+hold on
+
+%INITITAL POSITIONS
+
+%Check if electrons are within Box 1 and Box 2
+
+x = randi(nElectrons,1);
+Pxp(1: x) = ((Box2Bnd4x - 0).*rand(x, 1))* BoundX;
+Pxp(x+1: nElectrons) = ((BoundX - Box2Bnd3x).*rand(nElectrons - x, 1) + Box2Bnd3x )* BoundX;
+
+
+Pyp(1: nElectrons) = rand(nElectrons, 1) * BoundY;
+
+Vtherm = sqrt(2 * C.kb * T/Em);
+
+Vx(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+Vy(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+
+% Vx(1: nElectrons) = myRand(nElectrons) * Vtherm;
+% Vy(1: nElectrons) = myRand(nElectrons) * Vtherm;
+
+Px(1: nElectrons) = Pxp(1: nElectrons) + (Vx .* dt);
+Py(1: nElectrons) = Pyp(1: nElectrons) + (Vy .* dt);
+
+%Check if electrons are within Box 1 and Box 2
+
+% DoF = 0.05e-7;
+% k = 1;
+% while k <= nElectrons
+%     if((Pxp(k) >= (Box1Bnd1x - DoF)) & (Pxp(k) <= (Box1Bnd3x + DoF)) & ~((Pyp(k) <= (Box1Bnd3y - DoF)) & (Pyp(k) >= (Box2Bnd2y + DoF))))
+%         Pxp(1: nElectrons) = rand(nElectrons, 1) * BoundX;
+%         Pyp(1: nElectrons) = rand(nElectrons, 1) * BoundY;
+%         
+%         Px(1: nElectrons) = Pxp(1: nElectrons) + (Vx .* dt);
+%         Py(1: nElectrons) = Pyp(1: nElectrons) + (Vy .* dt);
+%         
+%         k = 1;
+%     else
+%         k = k + 1;
+%     end
+% end
+
+myColors = ['r' 'b' 'g' 'y' 'm' ];
+myColorTyp = 1;
+
+Pscat = 1 - exp(-(dt/t_mn));
+
+a = randi(nElectrons,5,1);
+
+TAvgp = 300;
+
+for i=2:TimeSteps
+   
+   if(Pscat > rand())
+      Vx(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+      Vy(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+%             Vx(1: nElectrons) = myRand(nElectrons) * Vtherm;
+%             Vy(1: nElectrons) = myRand(nElectrons) * Vtherm;
+   end
+
+   Vy((Py>BoundY) | (Py<0)) = -Vy((Py>BoundY) | (Py<0));
+   
+  
+
+
+   for j=1:5
+       subplot(2,1,1);
+       
+%        myBoxes(Box1Bnd1x, Box1Bnd1y, Box1Bnd2x, Box1Bnd2y, Box1Bnd3x, Box1Bnd3y, Box1Bnd4x, Box1Bnd4y);
+%        myBoxes(Box2Bnd1x, Box2Bnd1y, Box2Bnd2x, Box2Bnd2y, Box2Bnd3x, Box2Bnd3y, Box2Bnd4x, Box2Bnd4y);
+
+       plot([Pxp(a(j)) Px(a(j))], [Pyp(a(j)) Py(a(j))],myColors(j));
+       xlim([0 BoundX]);
+       ylim([0 BoundY]);
+   end
+   pause(0.1)
+   hold on
+   
+   VxAvg = mean(abs(Vx));
+   VyAvg = mean(abs(Vy));
+   
+%    VxAvg = mean(Vx);
+%    VyAvg = mean(Vy);
+   
+   TAvg = (((VxAvg^2)+ (VyAvg^2)) * Em)/(2 * C.kb);
+   
+   subplot(2,1,2);
+   plot([i-1 i],[TAvgp TAvg],'r');
+   xlim([0 TimeSteps]);
+   ylim([0 800]);
+   pause(0.1)
+   hold on
+   
+   Px(Px>BoundX) = Px(Px>BoundX)-BoundX;
+   Px(Px<0) = BoundX;
+   
+   Pxp = Px;
+   Pyp = Py;
+   
+   TAvgp = TAvg;
+  
+   Px(1: nElectrons) = Pxp(1: nElectrons) + (Vx .* dt);
+   Py(1: nElectrons) = Pyp(1: nElectrons) + (Vy .* dt);
+   
+  
+   
+end
+Ex = gradient(Px);
+Ey = gradient(Py);
+figure
+quiver(-Ey',-Ex',1);
+##### SOURCE END #####
+--></body></html>
