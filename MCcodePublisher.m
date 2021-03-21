@@ -11,7 +11,7 @@
 %
 % $$=1.87*10^5/0.2ps$$
 %
-% $$=3.74*10^(-9) m$$
+% $$=37.4*10^(-9) m$$
 %
 %
 % c) 2-D plot of particle trajectories
@@ -49,13 +49,13 @@ BoundX = 200e-9;                    % X boundary
 BoundY = 100e-9;                    % Y boundary
 T = 300;                            % Semiconductor temperature
             
-t_mn = 0.2e-11;                     % Mean time between collisions
+t_mn = 0.2e-12;                     % Mean time between collisions
                     
-TimeSteps = 200;                   % Number of time steps
+TimeSteps = 1000;                   % Number of time steps
 
-nElectrons = 50;                   % Number of electrons
+nElectrons = 1000;                   % Number of electrons
 
-dt = 1e-13;                         % Time Step
+dt = 1e-14;                         % Time Step
 
 
 
@@ -64,8 +64,8 @@ Pyp(1: nElectrons) = rand(nElectrons, 1) * BoundY;
 
 Vtherm = sqrt(2 * C.kb * T/Em);
 
-Vx(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
-Vy(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+Vx(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
+Vy(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
 
 myColors = ['r' 'b' 'g' 'y' 'm' ];
 myColorTyp = 1;
@@ -92,10 +92,10 @@ for i=2:TimeSteps
    hold on
    title('2-D plot of particle trajectories');
    
-   VxAvg = mean(abs(Vx));
-   VyAvg = mean(abs(Vy));
+   VxAbs = abs(Vx);
+   VyAbs = abs(Vy);
    
-   TAvg = (((VxAvg^2)+ (VyAvg^2)) * Em)/(2 * C.kb);
+   TAvg = (mean((VxAbs.^2)+ (VyAbs.^2)) * Em)/(2 * C.kb);
  
    subplot(2,1,2);
    plot([i-1 i],[TAvgp TAvg],'r');
@@ -136,18 +136,19 @@ C.mu_0 = 1.2566370614e-6;           % vacuum permeability
 C.c = 299792458;                    % speed of light
 C.g = 9.80665;                      % metres (32.1740 ft) per s²
 
+
 Em = 0.26 * C.m_0;                    % Mass of the Electron
 BoundX = 200e-9;                    % X boundary
 BoundY = 100e-9;                    % Y boundary
 T = 300;                            % Semiconductor temperature
             
-t_mn = 0.2e-11;                     % Mean time between collisions
+t_mn = 0.2e-12;                     % Mean time between collisions
                     
-TimeSteps = 200;                   % Number of time steps
+TimeSteps = 1000;                   % Number of time steps
 
-nElectrons = 50;                   % Number of electrons
+nElectrons = 1000;                   % Number of electrons
 
-dt = 1e-13;                         % Time Step
+dt = 1e-14;                         % Time Step
 
 
 
@@ -156,8 +157,8 @@ Pyp(1: nElectrons) = rand(nElectrons, 1) * BoundY;
 
 Vtherm = sqrt(2 * C.kb * T/Em);
 
-Vx(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
-Vy(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+Vx(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
+Vy(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
 
 myColors = ['r' 'b' 'g' 'y' 'm' ];
 myColorTyp = 1;
@@ -171,8 +172,8 @@ TAvgp = 300;
 for i=2:TimeSteps
     
    if(Pscat > rand())
-      Vx(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
-      Vy(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+      Vx(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
+      Vy(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
    end
     
    Px(1: nElectrons) = Pxp(1: nElectrons) + (Vx .* dt);
@@ -190,20 +191,19 @@ for i=2:TimeSteps
    hold on
    title('2-D plot of particle trajectories');
    
-   VxAvg = mean(abs(Vx));
-   VyAvg = mean(abs(Vy));
+   VxAbs = abs(Vx);
+   VyAbs = abs(Vy);
    
-   TAvg = (((VxAvg^2)+ (VyAvg^2)) * Em)/(2 * C.kb);
+   TAvg = (mean((VxAbs.^2)+ (VyAbs.^2)) * Em)/(2 * C.kb);
  
-   VAvg = sqrt(((VxAvg^2)+ (VyAvg^2)));
    
-   subplot(3,1,3);
+   subplot(2,1,2);
    plot([i-1 i],[TAvgp TAvg],'r');
    xlim([0 TimeSteps]);
    ylim([0 800]);
    pause(0.1)
    hold on
-   title('Temperature Plot');
+   title('Average Temperature');
    
    Px(Px>BoundX) = Px(Px>BoundX)-BoundX;
    Px(Px<0) = BoundX;
@@ -212,10 +212,10 @@ for i=2:TimeSteps
    Pyp = Py;
    
    t_mnCalc = -dt/log(1 - Pscat);
-   MFP = VAvg * t_mnCalc;
+   MFP = sqrt((VxAbs.^2)+ (VyAbs.^2)) * t_mnCalc;
    TAvgp = TAvg;
    subplot(3,1,1);
-   histogram(Vx,20);
+   histogram(Vtherm,40);
    hold on
    title( sprintf('Velocity Distribution | t_mn = %0.2e | MFP = %0.2e', t_mnCalc, MFP));
 end
@@ -228,6 +228,7 @@ clearvars
 clearvars -GLOBAL
 close all
 set(0,'DefaultFigureWindowStyle', 'docked')
+
 C.q_0 = 1.60217653e-19;             % electron charge
 C.hb = 1.054571596e-34;             % Dirac constant
 C.h = C.hb * 2 * pi;                    % Planck constant
@@ -244,13 +245,13 @@ BoundX = 200e-9;                    % X boundary
 BoundY = 100e-9;                    % Y boundary
 T = 300;                            % Semiconductor temperature
             
-t_mn = 0.2e-11;                     % Mean time between collisions
+t_mn = 0.2e-12;                     % Mean time between collisions
                     
 TimeSteps = 100;                   % Number of time steps
 
 nElectrons = 1000;                   % Number of electrons
 
-dt = 1e-13;                         % Time Step
+dt = 1e-14;                         % Time Step
 
 % BOX 1 Boundaries
 
@@ -292,8 +293,8 @@ Pyp(1: nElectrons) = rand(nElectrons, 1) * BoundY;
 
 Vtherm = sqrt(2 * C.kb * T/Em);
 
-Vx(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
-Vy(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+Vx(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
+Vy(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
 
 Px(1: nElectrons) = Pxp(1: nElectrons) + (Vx .* dt);
 Py(1: nElectrons) = Pyp(1: nElectrons) + (Vy .* dt);
@@ -310,8 +311,8 @@ TAvgp = 300;
 for i=2:TimeSteps
    
    if(Pscat > rand())
-      Vx(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
-      Vy(1: nElectrons) = randn(nElectrons, 1) * Vtherm;
+      Vx(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
+      Vy(1: nElectrons) = randn(nElectrons, 1) * (Vtherm/sqrt(2));
    end
 
    Vy((Py>BoundY) | (Py<0)) = -Vy((Py>BoundY) | (Py<0));
@@ -329,6 +330,34 @@ for i=2:TimeSteps
    pause(0.1)
    hold on
    title('2-D plot of particle trajectories with Boxes');
+   
+   % Refelction on boxes
+   
+   for k = 1:nElectrons
+       if (Py(k) > Box1Bnd3y) && (Px(k) > Box1Bnd1x) && (Px(k) < Box1Bnd2x)
+           if Pxp(k) > Box1Bnd2x && Px(k) < Box1Bnd2x
+               Vx(k) = -Vx(k);
+               Px(k) = 2 * Box1Bnd2x - Px(k);
+           elseif Pxp(k) < Box1Bnd1x && Px(k) > Box1Bnd1x
+               Vx(k) = -Vx(k);
+               Px(k) = 2*Box1Bnd1x-Px(k);
+           elseif Pyp(k) < Box1Bnd3y && Py(i) > Box1Bnd3y
+               Vy(k) = -Vy(i);
+               Py(k) = 2 * Box1Bnd3y - Py(k);
+           end
+       elseif (Py(k) <= Box2Bnd1y) && (Px(k) > Box2Bnd1x) && (Px(k) < Box2Bnd3x)
+           if Pxp(k) > Box2Bnd3x && Px(k) < Box2Bnd3x
+               Vx(k) = -Vx(k);
+               Px(k) = 2 * Box2Bnd3x - Px(k);
+           elseif Pxp(k) < Box2Bnd1x && Px(k) > Box2Bnd1x
+               Vx(k) = -Vx(k);
+               Px(k) = 2 * Box2Bnd1x - Px(k);
+           elseif Pyp(i) > Box2Bnd1y && Py(k) < Box2Bnd1y
+               Vy(k) = -Vy(k);
+               Py(k) = 2 * Box2Bnd1y - Py(k);
+           end
+       end
+   end
    
    VxAvg = mean(abs(Vx));
    VyAvg = mean(abs(Vy));
@@ -360,3 +389,14 @@ end
 subplot(3,1,3);
 hist3([Px.',Py.']);
 title('Electron Density Map');
+
+Vmag = sqrt(Vx.^2 + Vy.^2);
+Tmap = (Em * (Vmag.^2))./(2 * C.kb);
+mapX = linspace(min(Px), max(Px), 100);
+mapY = linspace(min(Py), max(Py), 50);
+[X,Y] = meshgrid(mapX, mapY);
+Tsurf = griddata(Px,Py,Tmap,X,Y);
+figure
+surf(Tsurf);
+title('Temperature Map');
+colorbar;

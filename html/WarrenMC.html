@@ -1,0 +1,827 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Monte-Carlo Modeling of Electron Transport</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-03-18"><meta name="DC.source" content="WarrenMC.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Monte-Carlo Modeling of Electron Transport</h1><!--introduction--><p>ELEC 4700 Assignment 1 Warren Munro - 101058184</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">1 Electron Modelling</a></li><li><a href="#9">2 Collisions with Mean Free Path</a></li><li><a href="#11">3 Enhancements</a></li></ul></div><h2 id="1">1 Electron Modelling</h2><pre class="codeinput">m_o = 9.109e-31;
+m_n = 0.26*m_o;
+T = 300;
+kb = 1.380649e-23; <span class="comment">%J/K</span>
+</pre><p>The thermal velocity at 300K was calculated using the following equation.</p><pre class="codeinput">v_th = sqrt(2*kb*T/m_n);
+</pre><p>The thermal veolcity could then be used to calculate the mean free path</p><pre class="codeinput">tau_mn = 0.2e-12;
+L_n = v_th*tau_mn;
+</pre><p>The boundaries are set to 200nm by 100nm and 1000 particles are given random positions within the limits.</p><pre class="codeinput">Xsize = 200e-9;
+Ysize = 100e-9;
+p_x = rand(1000, 1)*Xsize;
+p_y = rand(1000, 1)*Ysize;
+</pre><p>Particles are given a fixed velocity with random angle.</p><pre class="codeinput">v_x = zeros(1000, 1);
+v_y = zeros(1000, 1);
+theta = rand(1000, 1)*2*pi;
+v_x = cos(theta).*v_th;
+v_y = sin(theta).*v_th;
+
+
+line_color = [<span class="string">'r'</span>, <span class="string">'g'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>, <span class="string">'m'</span>, <span class="string">'y'</span>, <span class="string">'k'</span>, <span class="string">'w'</span>];
+clf
+figure(1)
+subplot(2, 1, 1)
+xlim([0 Xsize])
+ylim([0 Ysize])
+title(<span class="string">'Electron Movement through a Semiconductor'</span>)
+xlabel(<span class="string">'position (m)'</span>)
+ylabel(<span class="string">'position (m)'</span>)
+</pre><img vspace="5" hspace="5" src="WarrenMC_01.png" alt=""> <img vspace="5" hspace="5" src="WarrenMC_02.png" alt=""> <p>A time step size was selected so that particles can move no more than 1nm per cycle. The simulation will be ran for 1001 time steps.</p><pre class="codeinput">delta_t = 5.35e-15;
+time = linspace(0, 1000*delta_t, 1001);
+T_avg = zeros(1001, 1);
+</pre><pre class="codeinput"><span class="comment">%Particle positions are updated based on their velocity then plotted. After</span>
+<span class="comment">%each update, particle positions are checked to see if they have</span>
+<span class="comment">%encountered a bondary. If a boundary is passed, then it's position will be</span>
+<span class="comment">%corrected so that it interacts correctly with the boundary.</span>
+<span class="keyword">for</span> i = 0:1000
+    Xprev = p_x;
+    Yprev = p_y;
+
+    d_x = v_x .* delta_t;
+    d_y = v_y .* delta_t;
+
+    p_x = p_x + d_x;
+    p_y = p_y + d_y;
+
+    <span class="comment">%Check boundary conditions</span>
+    <span class="keyword">for</span> j = 1:1000
+        <span class="comment">%Horizontal boundaries</span>
+        <span class="keyword">if</span> p_x(j) &lt; 0
+            p_x(j) = p_x(j) + Xsize;
+        <span class="keyword">elseif</span> p_x(j) &gt; Xsize
+            p_x(j) = p_x(j) - Xsize;
+        <span class="keyword">end</span>
+
+        <span class="comment">%Vertical boundaries</span>
+        <span class="keyword">if</span> p_y(j) &lt; 0
+            v_y(j) = -v_y(j);
+            p_y(j) = -p_y(j);
+        <span class="keyword">elseif</span> p_y(j) &gt; Ysize
+            v_y(j) = -v_y(j);
+            p_y(j) = 2*Ysize-p_y(j);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">%The first ten particles in the array are plotted.</span>
+    subplot(2, 1, 1)
+    hold <span class="string">on</span>
+    <span class="keyword">for</span> j = 1:14
+        <span class="keyword">if</span> abs(p_x(j)-Xprev(j)) &lt;= v_th*delta_t
+            <span class="comment">%Only plot displacement if it is within maximum displacement,</span>
+            <span class="comment">%otherwise it must have jumped across the horizontal boundary</span>
+            plot([p_x(j),Xprev(j)],[p_y(j),Yprev(j)], <span class="string">'color'</span>, line_color(mod(j,7)+1))
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    hold <span class="string">off</span>
+
+    <span class="comment">%Measure temperature</span>
+    <span class="comment">%E_k = 0.5*m*v^2 = 3/2*kb*T</span>
+    v = sqrt(v_x.^2 + v_y.^2);
+    T_measured = (0.5.*m_n.*v.^2)./(kb.*3./2);
+    T_avg(i+1) = mean(T_measured);
+    subplot(2, 1, 2)
+    plot(time(1:i+1), T_avg(1:i+1))
+    title(<span class="string">'Temperature of the Semiconductor'</span>)
+    xlabel(<span class="string">'Time (s)'</span>)
+    ylabel(<span class="string">'Temperature (K)'</span>)
+<span class="keyword">end</span>
+hold <span class="string">off</span>
+</pre><pre class="codeoutput error">Error using matlab.graphics.axis.Axes/get
+Operation terminated by the user.
+
+Error in ylabel (line 65)
+    h = get(ax,'YLabel');
+
+Error in WarrenMC (line 109)
+    ylabel('Temperature (K)')
+</pre><pre class="codeinput"><span class="comment">%The resulting plots show that the particles are behaving correctly. Particles</span>
+<span class="comment">%reflect off of the vertical limits and pass through the horizontal limits and continue on the same trajectory from the opposite side. The</span>
+<span class="comment">%particles are given a random initial angle and a fixed velocity. Due to</span>
+<span class="comment">%the constant velocity of each particle, the temperature never changes</span>
+<span class="comment">%becuase it is related to the electrom velocity.</span>
+</pre><h2 id="9">2 Collisions with Mean Free Path</h2><pre class="codeinput"><span class="comment">%In part 2, the simulation is repeated except for now the particle</span>
+<span class="comment">%velocities will be randomized to a Maxwell-Boltzmann distribution, and</span>
+<span class="comment">%electrons will have a chance to scatter, where their angle and velocity is</span>
+<span class="comment">%randomized again.</span>
+
+<span class="comment">% The probability of an electron scattering follows the following equation.</span>
+P_scat = 1 - exp(-delta_t/tau_mn);
+
+<span class="comment">%Positions are randomized in the same way as before, but now the velocities</span>
+<span class="comment">%are given a random angle and a random velocity instead of being fixed at</span>
+<span class="comment">%v_th.</span>
+p_x = rand(1000, 1)*Xsize;
+p_y = rand(1000, 1)*Ysize;
+
+theta = rand(1000, 1)*2*pi;
+v_x = cos(theta).*v_th*randn();
+v_y = sin(theta).*v_th*randn();
+
+figure(2)
+subplot(3, 1, 1)
+xlim([0 Xsize])
+ylim([0 Ysize])
+title(<span class="string">'Electron Scattering in a Semiconductor'</span>)
+xlabel(<span class="string">'position (m)'</span>)
+ylabel(<span class="string">'position (m)'</span>)
+
+<span class="keyword">for</span> i = 0:1000
+    Xprev = p_x;
+    Yprev = p_y;
+
+    <span class="keyword">for</span> j = 1:1000
+    	<span class="keyword">if</span> P_scat &gt; rand()
+            <span class="comment">%Particle scatters. Give new v_x and v_y</span>
+            v_x(j) = cos(2*pi*rand()).*v_th*randn();
+            v_y(j) = sin(2*pi*rand()).*v_th*randn();
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    d_x = v_x .* delta_t;
+    d_y = v_y .* delta_t;
+    p_x = p_x + d_x;
+    p_y = p_y + d_y;
+
+    <span class="comment">%Check boundary conditions</span>
+    <span class="keyword">for</span> j = 1:1000
+        <span class="comment">%Horizontal boundaries</span>
+        <span class="keyword">if</span> p_x(j) &lt; 0
+            p_x(j) = p_x(j) + Xsize;
+        <span class="keyword">elseif</span> p_x(j) &gt; Xsize
+            p_x(j) = p_x(j) - Xsize;
+        <span class="keyword">end</span>
+
+        <span class="comment">%Vertical boundaries</span>
+        <span class="keyword">if</span> p_y(j) &lt; 0
+            v_y(j) = -v_y(j);
+            p_y(j) = -p_y(j);
+        <span class="keyword">elseif</span> p_y(j) &gt; Ysize
+            v_y(j) = -v_y(j);
+            p_y(j) = 2*Ysize-p_y(j);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    v = sqrt(v_x.^2 + v_y.^2);
+    subplot(3, 1, 3)
+    hist(v, 20);
+    title(<span class="string">'Distribution of Electron Velocities'</span>)
+    xlabel(<span class="string">'Velocity (m/s)'</span>)
+    ylabel(<span class="string">'Number of Electrons'</span>)
+
+    subplot(3, 1, 1)
+    hold <span class="string">on</span>
+    <span class="comment">%plot points</span>
+    <span class="keyword">for</span> j = 1:14
+        <span class="keyword">if</span> abs(p_x(j)-Xprev(j)) &lt;= sqrt(2*(v_th^2))*delta_t
+            <span class="comment">%Only plot displacement if it is within maximum displacement,</span>
+            <span class="comment">%otherwise it must have jumped across the horizontal boundary</span>
+            plot([p_x(j),Xprev(j)],[p_y(j),Yprev(j)], <span class="string">'color'</span>, line_color(mod(j,7)+1))
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    hold <span class="string">off</span>
+
+
+    <span class="comment">%Measure temperature</span>
+    <span class="comment">%E_k = 0.5*m*v^2 = 3/2*kb*T</span>
+    T_measured = (0.5.*m_n.*v.^2)./(kb.*3./2);
+    T_avg(i+1) = mean(T_measured);
+    subplot(3, 1, 2)
+    plot(time(1:i+1), T_avg(1:i+1))
+    title(<span class="string">'Temperature of the Semiconductor'</span>)
+    xlabel(<span class="string">'Time (s)'</span>)
+    ylabel(<span class="string">'Temperature (K)'</span>)
+    <span class="comment">%pause(0.01)</span>
+<span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="comment">%The plots show that the electrons now scatter and randomly change</span>
+<span class="comment">%direction. Due to the changing velocities of the particles, the</span>
+<span class="comment">%temperature now fluctuates. As the temperature plot shows, The temperature</span>
+<span class="comment">%starts off low, then rises to an equilibrium around 200K and fluctuates</span>
+<span class="comment">%around that temperature until the simulation is complete. The histogram</span>
+<span class="comment">%shows that the velocities are in fact in a Maxwell-Boltzmann Distribution.</span>
+</pre><h2 id="11">3 Enhancements</h2><pre class="codeinput"><span class="comment">%Part 3 adds a bottleneck boundary to the middle of the region. The</span>
+<span class="comment">%boundary is an insulator, so particles will reflect off of the barriers</span>
+<span class="comment">%upon contact</span>
+
+<span class="comment">%box coordinates</span>
+box1_top = 100e-9;
+box1_bottom = 60e-9;
+box2_top = 40e-9;
+box2_bottom = 0e-9;
+box_left = 80e-9;
+box_right = 120e-9;
+top_box = [box_right, box1_bottom; box_right, box1_top; box_left, box1_top; box_left, box1_bottom; box_right, box1_bottom];
+bottom_box = [box_right, box2_bottom; box_right, box2_top; box_left, box2_top; box_left, box2_bottom; box_right, box2_bottom];
+
+<span class="comment">% Randomize position within region</span>
+p_x = rand(1000, 1)*Xsize;
+p_y = rand(1000, 1)*Ysize;
+
+<span class="comment">%Reposition any particles generated within the boxes</span>
+<span class="keyword">for</span> i= 1:1000
+    <span class="keyword">if</span> (p_y(i) &gt; box1_bottom) &amp;&amp; (p_x(i) &gt; box_left) &amp;&amp; (p_x(i) &lt; box_right)
+        <span class="comment">%particle is in top box</span>
+        p_x(i) = rand()*Xsize;
+        p_y(i) = rand()*Ysize;
+        <span class="comment">%reduce i so that the updated particle position is re-tested</span>
+        i = i-1;
+    <span class="keyword">elseif</span> (p_y(i) &lt; box2_top) &amp;&amp; (p_x(i) &gt; box_left) &amp;&amp; (p_x(i) &lt; box_right)
+        <span class="comment">%particle is in bottom box</span>
+        p_x(i) = rand()*Xsize;
+        p_y(i) = rand()*Ysize;
+        i = i-1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">%Randomize velocities</span>
+theta = rand(1000, 1)*2*pi;
+v_x = cos(theta).*v_th*randn();
+v_y = sin(theta).*v_th*randn();
+
+figure(3)
+subplot(3, 1, 1)
+xlim([0 Xsize])
+ylim([0 Ysize])
+title(<span class="string">'Electron Movement through a Semiconductor with a Bottleneck'</span>)
+xlabel(<span class="string">'position (m)'</span>)
+ylabel(<span class="string">'position nm)'</span>)
+hold <span class="string">on</span>
+<span class="comment">%draw boxes</span>
+plot(top_box(:,1), top_box(:,2), <span class="string">'color'</span>, <span class="string">'k'</span>)
+plot(bottom_box(:,1), bottom_box(:,2), <span class="string">'color'</span>, <span class="string">'k'</span>)
+hold <span class="string">off</span>
+
+<span class="keyword">for</span> i = 0:1000
+    Xprev = p_x;
+    Yprev = p_y;
+
+    <span class="keyword">for</span> j = 1:1000
+    	<span class="keyword">if</span> P_scat &gt; rand()
+            <span class="comment">%Particle scatters. Give new v_x and v_y</span>
+            v_x(j) = cos(2*pi*rand()).*v_th*randn();
+            v_y(j) = sin(2*pi*rand()).*v_th*randn();
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    d_x = v_x .* delta_t;
+    d_y = v_y .* delta_t;
+    p_x = p_x + d_x;
+    p_y = p_y + d_y;
+
+    <span class="comment">%Check boundary conditions</span>
+    <span class="keyword">for</span> j = 1:1000
+        <span class="comment">%Horizontal boundaries</span>
+        <span class="keyword">if</span> p_x(j) &lt; 0
+            p_x(j) = p_x(j) + Xsize;
+        <span class="keyword">elseif</span> p_x(j) &gt; Xsize
+            p_x(j) = p_x(j) - Xsize;
+        <span class="keyword">end</span>
+
+        <span class="comment">%Vertical boundaries</span>
+        <span class="keyword">if</span> p_y(j) &lt; 0
+            v_y(j) = -v_y(j);
+            p_y(j) = -p_y(j);
+        <span class="keyword">elseif</span> p_y(j) &gt; Ysize
+            v_y(j) = -v_y(j);
+            p_y(j) = 2*Ysize-p_y(j);
+        <span class="keyword">end</span>
+
+        <span class="comment">%box boundaries</span>
+        <span class="keyword">if</span> (p_y(j) &gt; box1_bottom) &amp;&amp; (p_x(j) &gt; box_left) &amp;&amp; (p_x(j) &lt; box_right)
+            <span class="comment">%particle new position is in the top box</span>
+            <span class="keyword">if</span> Xprev(j) &gt; box_right &amp;&amp; p_x(j) &lt; box_right
+                <span class="comment">%right wall was hit</span>
+                v_x(j) = -v_x(j);
+                p_x(j) = 2*box_right-p_x(j);
+            <span class="keyword">elseif</span> Xprev(j) &lt; box_left &amp;&amp; p_x(j) &gt; box_left
+                v_x(j) = -v_x(j);
+                p_x(j) = 2*box_left-p_x(j);
+            <span class="keyword">elseif</span> Yprev(j) &lt; box1_bottom &amp;&amp; p_y(j) &gt; box1_bottom
+                v_y(j) = -v_y(j);
+                p_y(j) = 2*box1_bottom-p_y(j);
+            <span class="keyword">end</span>
+        <span class="keyword">elseif</span> (p_y(j) &lt; box2_top) &amp;&amp; (p_x(j) &gt; box_left) &amp;&amp; (p_x(j) &lt; box_right)
+            <span class="comment">%particle new position is in the bottom box</span>
+            <span class="keyword">if</span> Xprev(j) &gt; box_right &amp;&amp; p_x(j) &lt; box_right
+                v_x(j) = -v_x(j);
+                p_x(j) = 2*box_right-p_x(j);
+            <span class="keyword">elseif</span> Xprev(j) &lt; box_left &amp;&amp; p_x(j) &gt; box_left
+                v_x(j) = -v_x(j);
+                p_x(j) = 2*box_left-p_x(j);
+            <span class="keyword">elseif</span> Yprev(j) &gt; box2_top &amp;&amp; p_y(j) &lt; box2_top
+                v_y(j) = -v_y(j);
+                p_y(j) = 2*box2_top-p_y(j);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    subplot(3, 1, 1)
+    hold <span class="string">on</span>
+    <span class="comment">%plot points</span>
+    <span class="keyword">for</span> j = 1:14
+        <span class="keyword">if</span> abs(p_x(j)-Xprev(j)) &lt;= sqrt(2*(v_th^2))*delta_t
+            <span class="comment">%Only plot displacement if it is within maximum displacement,</span>
+            <span class="comment">%otherwise it must have jumped across the horizontal boundary</span>
+            plot([p_x(j),Xprev(j)],[p_y(j),Yprev(j)], <span class="string">'color'</span>, line_color(mod(j,7)+1))
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    hold <span class="string">off</span>
+
+    <span class="comment">%pause(0.01)</span>
+<span class="keyword">end</span>
+
+density = zeros(100, 200);
+v_sqr = zeros(100, 200);
+<span class="comment">%density and temperature</span>
+<span class="keyword">for</span> i = 1:1000
+    density(ceil(p_y(i)*1e9), ceil(p_x(i)*1e9)) = density(ceil(p_y(i)*1e9), ceil(p_x(i)*1e9)) + 1;
+    v_sqr(ceil(p_y(i)*1e9), ceil(p_x(i)*1e9)) = v_sqr(ceil(p_y(i)*1e9), ceil(p_x(i)*1e9)) + v_x(i)^2 + v_y(i)^2;
+<span class="keyword">end</span>
+
+subplot(3, 1, 2)
+surf(density)
+colormap(jet)
+shading <span class="string">interp</span>
+title(<span class="string">'Electron Density'</span>)
+xlabel(<span class="string">'position (nm)'</span>)
+ylabel(<span class="string">'position (nm)'</span>)
+zlabel(<span class="string">'Electrons per nm^2'</span>)
+
+temp = m_n.*v_sqr./(2.*kb*3./2);
+subplot(3, 1, 3)
+surf(temp)
+colormap(jet)
+shading <span class="string">interp</span>
+title(<span class="string">'Temperature'</span>)
+xlabel(<span class="string">'position (nm)'</span>)
+ylabel(<span class="string">'position (nm)'</span>)
+zlabel(<span class="string">'Temperature'</span>)
+</pre><pre class="codeinput"><span class="comment">%The plots show that the particles are reflected off of the insulating</span>
+<span class="comment">%bottleneck. There is no free electrons within the insulators. The electron</span>
+<span class="comment">%density was plotted, and it shows that the distribution of electrons</span>
+<span class="comment">%throughout the semiconductor is random, except for in the insulator</span>
+<span class="comment">%regions where there is no electrons present. The temperature also apears</span>
+<span class="comment">%to be random throughout the semiconductor, with there being no temperature</span>
+<span class="comment">%within the insulator becuase the temperature is based on electron velocity</span>
+<span class="comment">%and there is no free electrons in the insulator to generate a temperature.</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Monte-Carlo Modeling of Electron Transport
+% ELEC 4700 Assignment 1
+% Warren Munro - 101058184
+
+%% 1 Electron Modelling
+m_o = 9.109e-31;
+m_n = 0.26*m_o;
+T = 300;
+kb = 1.380649e-23; %J/K
+
+%%
+% The thermal velocity at 300K was calculated using the following equation.
+v_th = sqrt(2*kb*T/m_n);
+
+%%
+% The thermal veolcity could then be used to calculate the mean free path
+tau_mn = 0.2e-12;
+L_n = v_th*tau_mn;
+
+%%
+% The boundaries are set to 200nm by 100nm and 1000 particles are given
+% random positions within the limits.
+Xsize = 200e-9;
+Ysize = 100e-9;
+p_x = rand(1000, 1)*Xsize;
+p_y = rand(1000, 1)*Ysize;
+
+%%
+% Particles are given a fixed velocity with random angle.
+v_x = zeros(1000, 1);
+v_y = zeros(1000, 1);
+theta = rand(1000, 1)*2*pi;
+v_x = cos(theta).*v_th;
+v_y = sin(theta).*v_th;
+
+
+line_color = ['r', 'g', 'b', 'c', 'm', 'y', 'k', 'w'];
+clf
+figure(1)
+subplot(2, 1, 1)
+xlim([0 Xsize])
+ylim([0 Ysize])
+title('Electron Movement through a Semiconductor')
+xlabel('position (m)')
+ylabel('position (m)')
+
+%%
+% A time step size was selected so that particles can move no more than 1nm
+% per cycle. The simulation will be ran for 1001 time steps.
+delta_t = 5.35e-15;
+time = linspace(0, 1000*delta_t, 1001);
+T_avg = zeros(1001, 1);
+
+%%
+%Particle positions are updated based on their velocity then plotted. After
+%each update, particle positions are checked to see if they have
+%encountered a bondary. If a boundary is passed, then it's position will be
+%corrected so that it interacts correctly with the boundary.
+for i = 0:1000
+    Xprev = p_x;
+    Yprev = p_y;
+    
+    d_x = v_x .* delta_t;
+    d_y = v_y .* delta_t;
+
+    p_x = p_x + d_x;
+    p_y = p_y + d_y;
+    
+    %Check boundary conditions
+    for j = 1:1000
+        %Horizontal boundaries
+        if p_x(j) < 0
+            p_x(j) = p_x(j) + Xsize;
+        elseif p_x(j) > Xsize
+            p_x(j) = p_x(j) - Xsize;
+        end
+        
+        %Vertical boundaries
+        if p_y(j) < 0
+            v_y(j) = -v_y(j);
+            p_y(j) = -p_y(j);
+        elseif p_y(j) > Ysize
+            v_y(j) = -v_y(j);
+            p_y(j) = 2*Ysize-p_y(j);
+        end
+    end
+    
+    %The first ten particles in the array are plotted. 
+    subplot(2, 1, 1)
+    hold on
+    for j = 1:14
+        if abs(p_x(j)-Xprev(j)) <= v_th*delta_t
+            %Only plot displacement if it is within maximum displacement,
+            %otherwise it must have jumped across the horizontal boundary
+            plot([p_x(j),Xprev(j)],[p_y(j),Yprev(j)], 'color', line_color(mod(j,7)+1))
+        end
+    end
+    hold off
+    
+    %Measure temperature
+    %E_k = 0.5*m*v^2 = 3/2*kb*T
+    v = sqrt(v_x.^2 + v_y.^2);
+    T_measured = (0.5.*m_n.*v.^2)./(kb.*3./2);
+    T_avg(i+1) = mean(T_measured);
+    subplot(2, 1, 2)
+    plot(time(1:i+1), T_avg(1:i+1))
+    title('Temperature of the Semiconductor')
+    xlabel('Time (s)')
+    ylabel('Temperature (K)')
+end
+hold off
+
+%%
+%The resulting plots show that the particles are behaving correctly. Particles
+%reflect off of the vertical limits and pass through the horizontal limits and continue on the same trajectory from the opposite side. The
+%particles are given a random initial angle and a fixed velocity. Due to
+%the constant velocity of each particle, the temperature never changes
+%becuase it is related to the electrom velocity.
+
+%% 2 Collisions with Mean Free Path
+%In part 2, the simulation is repeated except for now the particle
+%velocities will be randomized to a Maxwell-Boltzmann distribution, and
+%electrons will have a chance to scatter, where their angle and velocity is
+%randomized again.
+
+% The probability of an electron scattering follows the following equation.
+P_scat = 1 - exp(-delta_t/tau_mn);
+
+%Positions are randomized in the same way as before, but now the velocities
+%are given a random angle and a random velocity instead of being fixed at
+%v_th.
+p_x = rand(1000, 1)*Xsize;
+p_y = rand(1000, 1)*Ysize;
+
+theta = rand(1000, 1)*2*pi;
+v_x = cos(theta).*v_th*randn();
+v_y = sin(theta).*v_th*randn();
+
+figure(2)
+subplot(3, 1, 1)
+xlim([0 Xsize])
+ylim([0 Ysize])
+title('Electron Scattering in a Semiconductor')
+xlabel('position (m)')
+ylabel('position (m)')
+
+for i = 0:1000
+    Xprev = p_x;
+    Yprev = p_y;
+    
+    for j = 1:1000
+    	if P_scat > rand()
+            %Particle scatters. Give new v_x and v_y
+            v_x(j) = cos(2*pi*rand()).*v_th*randn();
+            v_y(j) = sin(2*pi*rand()).*v_th*randn();
+        end
+    end
+    
+    d_x = v_x .* delta_t;
+    d_y = v_y .* delta_t;
+    p_x = p_x + d_x;
+    p_y = p_y + d_y;
+    
+    %Check boundary conditions
+    for j = 1:1000
+        %Horizontal boundaries
+        if p_x(j) < 0
+            p_x(j) = p_x(j) + Xsize;
+        elseif p_x(j) > Xsize
+            p_x(j) = p_x(j) - Xsize;
+        end
+        
+        %Vertical boundaries
+        if p_y(j) < 0
+            v_y(j) = -v_y(j);
+            p_y(j) = -p_y(j);
+        elseif p_y(j) > Ysize
+            v_y(j) = -v_y(j);
+            p_y(j) = 2*Ysize-p_y(j);
+        end
+    end
+    
+    v = sqrt(v_x.^2 + v_y.^2);
+    subplot(3, 1, 3)
+    hist(v, 20);
+    title('Distribution of Electron Velocities')
+    xlabel('Velocity (m/s)')
+    ylabel('Number of Electrons')
+    
+    subplot(3, 1, 1)
+    hold on 
+    %plot points
+    for j = 1:14
+        if abs(p_x(j)-Xprev(j)) <= sqrt(2*(v_th^2))*delta_t
+            %Only plot displacement if it is within maximum displacement,
+            %otherwise it must have jumped across the horizontal boundary
+            plot([p_x(j),Xprev(j)],[p_y(j),Yprev(j)], 'color', line_color(mod(j,7)+1))
+        end
+    end
+    hold off
+    
+    
+    %Measure temperature
+    %E_k = 0.5*m*v^2 = 3/2*kb*T
+    T_measured = (0.5.*m_n.*v.^2)./(kb.*3./2);
+    T_avg(i+1) = mean(T_measured);
+    subplot(3, 1, 2)
+    plot(time(1:i+1), T_avg(1:i+1))
+    title('Temperature of the Semiconductor')
+    xlabel('Time (s)')
+    ylabel('Temperature (K)')
+    %pause(0.01)
+end
+
+%%
+%The plots show that the electrons now scatter and randomly change
+%direction. Due to the changing velocities of the particles, the
+%temperature now fluctuates. As the temperature plot shows, The temperature
+%starts off low, then rises to an equilibrium around 200K and fluctuates
+%around that temperature until the simulation is complete. The histogram
+%shows that the velocities are in fact in a Maxwell-Boltzmann Distribution.
+
+%% 3 Enhancements
+%Part 3 adds a bottleneck boundary to the middle of the region. The
+%boundary is an insulator, so particles will reflect off of the barriers
+%upon contact
+
+%box coordinates
+box1_top = 100e-9;
+box1_bottom = 60e-9;
+box2_top = 40e-9;
+box2_bottom = 0e-9;
+box_left = 80e-9;
+box_right = 120e-9;
+top_box = [box_right, box1_bottom; box_right, box1_top; box_left, box1_top; box_left, box1_bottom; box_right, box1_bottom];
+bottom_box = [box_right, box2_bottom; box_right, box2_top; box_left, box2_top; box_left, box2_bottom; box_right, box2_bottom];
+
+% Randomize position within region
+p_x = rand(1000, 1)*Xsize;
+p_y = rand(1000, 1)*Ysize;
+
+%Reposition any particles generated within the boxes
+for i= 1:1000
+    if (p_y(i) > box1_bottom) && (p_x(i) > box_left) && (p_x(i) < box_right)
+        %particle is in top box
+        p_x(i) = rand()*Xsize;
+        p_y(i) = rand()*Ysize;
+        %reduce i so that the updated particle position is re-tested
+        i = i-1;
+    elseif (p_y(i) < box2_top) && (p_x(i) > box_left) && (p_x(i) < box_right)
+        %particle is in bottom box
+        p_x(i) = rand()*Xsize;
+        p_y(i) = rand()*Ysize;
+        i = i-1;
+    end
+end
+
+%Randomize velocities
+theta = rand(1000, 1)*2*pi;
+v_x = cos(theta).*v_th*randn();
+v_y = sin(theta).*v_th*randn();
+
+figure(3)
+subplot(3, 1, 1)
+xlim([0 Xsize])
+ylim([0 Ysize])
+title('Electron Movement through a Semiconductor with a Bottleneck')
+xlabel('position (m)')
+ylabel('position nm)')
+hold on
+%draw boxes
+plot(top_box(:,1), top_box(:,2), 'color', 'k')
+plot(bottom_box(:,1), bottom_box(:,2), 'color', 'k')
+hold off
+
+for i = 0:1000
+    Xprev = p_x;
+    Yprev = p_y;
+    
+    for j = 1:1000
+    	if P_scat > rand()
+            %Particle scatters. Give new v_x and v_y
+            v_x(j) = cos(2*pi*rand()).*v_th*randn();
+            v_y(j) = sin(2*pi*rand()).*v_th*randn();
+        end
+    end
+    
+    d_x = v_x .* delta_t;
+    d_y = v_y .* delta_t;
+    p_x = p_x + d_x;
+    p_y = p_y + d_y;
+    
+    %Check boundary conditions
+    for j = 1:1000
+        %Horizontal boundaries
+        if p_x(j) < 0
+            p_x(j) = p_x(j) + Xsize;
+        elseif p_x(j) > Xsize
+            p_x(j) = p_x(j) - Xsize;
+        end
+        
+        %Vertical boundaries
+        if p_y(j) < 0
+            v_y(j) = -v_y(j);
+            p_y(j) = -p_y(j);
+        elseif p_y(j) > Ysize
+            v_y(j) = -v_y(j);
+            p_y(j) = 2*Ysize-p_y(j);
+        end
+        
+        %box boundaries
+        if (p_y(j) > box1_bottom) && (p_x(j) > box_left) && (p_x(j) < box_right)
+            %particle new position is in the top box
+            if Xprev(j) > box_right && p_x(j) < box_right
+                %right wall was hit
+                v_x(j) = -v_x(j);
+                p_x(j) = 2*box_right-p_x(j);
+            elseif Xprev(j) < box_left && p_x(j) > box_left
+                v_x(j) = -v_x(j);
+                p_x(j) = 2*box_left-p_x(j);
+            elseif Yprev(j) < box1_bottom && p_y(j) > box1_bottom
+                v_y(j) = -v_y(j);
+                p_y(j) = 2*box1_bottom-p_y(j);
+            end
+        elseif (p_y(j) < box2_top) && (p_x(j) > box_left) && (p_x(j) < box_right)
+            %particle new position is in the bottom box
+            if Xprev(j) > box_right && p_x(j) < box_right
+                v_x(j) = -v_x(j);
+                p_x(j) = 2*box_right-p_x(j);
+            elseif Xprev(j) < box_left && p_x(j) > box_left
+                v_x(j) = -v_x(j);
+                p_x(j) = 2*box_left-p_x(j);
+            elseif Yprev(j) > box2_top && p_y(j) < box2_top
+                v_y(j) = -v_y(j);
+                p_y(j) = 2*box2_top-p_y(j);
+            end
+        end
+    end
+
+    subplot(3, 1, 1)
+    hold on 
+    %plot points
+    for j = 1:14
+        if abs(p_x(j)-Xprev(j)) <= sqrt(2*(v_th^2))*delta_t
+            %Only plot displacement if it is within maximum displacement,
+            %otherwise it must have jumped across the horizontal boundary
+            plot([p_x(j),Xprev(j)],[p_y(j),Yprev(j)], 'color', line_color(mod(j,7)+1))
+        end
+    end
+    hold off
+    
+    %pause(0.01)
+end
+
+density = zeros(100, 200);
+v_sqr = zeros(100, 200);
+%density and temperature
+for i = 1:1000
+    density(ceil(p_y(i)*1e9), ceil(p_x(i)*1e9)) = density(ceil(p_y(i)*1e9), ceil(p_x(i)*1e9)) + 1;
+    v_sqr(ceil(p_y(i)*1e9), ceil(p_x(i)*1e9)) = v_sqr(ceil(p_y(i)*1e9), ceil(p_x(i)*1e9)) + v_x(i)^2 + v_y(i)^2;
+end
+
+subplot(3, 1, 2)
+surf(density)
+colormap(jet)
+shading interp
+title('Electron Density')
+xlabel('position (nm)')
+ylabel('position (nm)')
+zlabel('Electrons per nm^2')
+
+temp = m_n.*v_sqr./(2.*kb*3./2);
+subplot(3, 1, 3)
+surf(temp)
+colormap(jet)
+shading interp
+title('Temperature')
+xlabel('position (nm)')
+ylabel('position (nm)')
+zlabel('Temperature')
+
+%% 
+%The plots show that the particles are reflected off of the insulating
+%bottleneck. There is no free electrons within the insulators. The electron
+%density was plotted, and it shows that the distribution of electrons
+%throughout the semiconductor is random, except for in the insulator
+%regions where there is no electrons present. The temperature also apears
+%to be random throughout the semiconductor, with there being no temperature
+%within the insulator becuase the temperature is based on electron velocity
+%and there is no free electrons in the insulator to generate a temperature.
+##### SOURCE END #####
+--></body></html>
